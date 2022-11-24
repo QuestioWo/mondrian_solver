@@ -1,0 +1,62 @@
+a := 8; M := 2
+Best mondrian score := 10
+
+a := 12; M := 2
+Best mondrian score := 16
+
+a := 16; M := 2
+Best mondrian score := 22
+
+a := 20; M := 2
+Best mondrian score := 26
+
+a := 8; M := 3
+Best mondrian score := 10
+
+a := 12; M := 3
+Best mondrian score := 8
+
+a := 16; M := 3
+Best mondrian score := 22
+
+a := 20; M := 3
+Best mondrian score := 14
+
+a := 8; M := 4
+Best mondrian score := 9
+
+a := 12; M := 4
+Best mondrian score := 8
+
+a := 16; M := 4
+Best mondrian score := 18
+
+a := 20; M := 4
+Best mondrian score := 13
+
+a := 8; M := 5
+Best mondrian score := 6
+
+a := 12; M := 5
+Best mondrian score := 8
+
+a := 16; M := 5
+Best mondrian score := 17
+
+a := 20; M := 5
+Best mondrian score := 13
+
+
+Times:
+        8       12      16      20
+2       0.014806032180786133    0.013028383255004883    0.023543119430541992    0.03664588928222656
+3       0.06052803993225098     0.22763800621032715     0.5813207626342773      1.2508935928344727
+4       1.1237738132476807      7.369783639907837       26.436251163482666      70.27687311172485
+5       17.016772270202637      205.6657793521881       1335.583125591278       8511.002796411514
+
+Scores:
+        8       12      16      20
+2       10      16      22      26
+3       10      8       22      14
+4       9       8       18      13
+5       6       8       17      13

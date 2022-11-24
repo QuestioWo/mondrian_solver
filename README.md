@@ -45,10 +45,7 @@ Images of the (found) optimal Mondrian patterns will be saved as `.png` files la
 
 | `M`v   `a`> | 8 | 12 | 16 | 20 |
 |---|---|---|---|---|
-| 2 |  |  |  |  |
-| 3 |  |  |  |  |
-| 4 |  |  |  |  |
-| 5 |  |  |  |  |
-| 6 |  |  |  |  |
-| 7 |  |  |  |  |
-| 8 |  |  |  |  |
+| 2 | ![](assets/best_8X2%3D10.png) | ![](assets/best_12X2%3D16.png) | ![](assets/best_16X2%3D22.png) | ![](assets/best_20X2%3D26.png) |
+| 3 | ![](assets/best_8X3%3D10.png) | ![](assets/best_12X3%3D8.png) | ![](assets/best_16X3%3D22.png) | ![](assets/best_20X3%3D14.png) |
+| 4 | ![](assets/best_8X4%3D9.png) | ![](assets/best_12X4%3D8.png) | ![](assets/best_16X4%3D18.png) | ![](assets/best_20X4%3D13.png) |
+| 5 | ![](assets/best_8X5%3D6.png) | ![](assets/best_12X5%3D8.png) | ![](assets/best_16X5%3D17.png) | ![](assets/best_20X5%3D13.png) |
