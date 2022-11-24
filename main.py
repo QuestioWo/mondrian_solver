@@ -332,8 +332,8 @@ def SolveMondrian(a: int, M: int, show: bool = True) -> None :
 	# Disabling BFS as although it is faster, it is more memory hungry
 	# to the extent of using all available RAM
 	
-	iterateBFS(M, scores_states, stateQueue)
-	# iterateIDDFS(M, scores_states, stateQueue)
+	# iterateBFS(M, scores_states, stateQueue)
+	iterateIDDFS(M, scores_states, stateQueue)
 
 	ranked_scores = sorted(list(scores_states.keys()))
 
