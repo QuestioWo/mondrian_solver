@@ -10,7 +10,9 @@ The state-space is refined by not allowing any states that are congruent - eithe
 
 Originally, only BFS was implemented, however, due to its large memory requirements, IDDFS was implemented. IDDFS allows for the same complete-ness of BFS, but at the memory cost of a Depth-First Search style implementation - ~O(M) vs O(a^M) for BFS.
 
-The currently code include a parallelised BFS implementation (using python's `multiprocessing` library) and a non-parallelised, however, memory-light IDDFS implementation. The IDDFS implementation is currently used by default, however, the BFS implementation can be used by switching the function called inside of the `SolveMondrian` function.
+The currently code include a parallelised BFS implementation (using python's `multiprocessing` library) and a non-parallelised, however, memory-light IDDFS implementation. The IDDFS implementation is currently used by default, however, the BFS implementation can be used by switching the function called inside of the `SolveMondrian` function. 
+
+Both the BFS and IDDFS implementations have the same time complexitiy. However, the BFS implementation is faster due to its parallelisation. This makes it the superior option for smaller state-spaces, however not so for larger due to its memory requirements - where the slower IDDFS implementation has to beused instead.
 
 ## How to run
 

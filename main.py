@@ -280,7 +280,7 @@ def updateQueueWithUnique(new_queue: List[List[State]], explored_states: SortedL
 		for j in range(len(new_queue[i])) :
 			curr_state = new_queue[i][j]
 			
-			not_explored = (explored_states.count(hash(child_state)) == 0)
+			not_explored = (explored_states.count(hash(curr_state)) == 0)
 			
 			if not_explored :
 				explored_states.add(hash(curr_state))
@@ -332,8 +332,8 @@ def SolveMondrian(a: int, M: int, show: bool = True) -> None :
 	# Disabling BFS as although it is faster, it is more memory hungry
 	# to the extent of using all available RAM
 	
-	# iterateBFS(M, scores_states, stateQueue)
-	iterateIDDFS(M, scores_states, stateQueue)
+	iterateBFS(M, scores_states, stateQueue)
+	# iterateIDDFS(M, scores_states, stateQueue)
 
 	ranked_scores = sorted(list(scores_states.keys()))
 
