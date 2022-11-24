@@ -273,30 +273,32 @@ def expandDepth(current_state: State) -> List[State] :
 	return [actOnState(current_state, possible_action) for possible_action in current_state.generatePossibleActions()]
 	
 
-def updateQueueWithUnique(new_queue: List[State], explored_states: dict) -> List[State] :
+def updateQueueWithUnique(new_queue: List[List[State]], explored_states: dict) -> List[State] :
 	unique_queue = []
 	for i in range(len(new_queue)) :
-		curr_state = new_queue[i]
-		
-		not_explored = (not hash(curr_state) in explored_states)
-		explored_states[hash(curr_state)] = curr_state
-		
-		if not_explored :
-			unique_queue.append(curr_state)
+		for j in range(len(new_queue[i])) :
+			curr_state = new_queue[i][j]
+			
+			not_explored = (not hash(curr_state) in explored_states)
+			explored_states[hash(curr_state)] = curr_state
+			
+			if not_explored :
+				unique_queue.append(curr_state)
 
 	return unique_queue
 
 
 def iterateBFS(M: int, explored_states: dict, stateQueue: List[State]) -> None :
 	for _ in range(M) :
+		# start_q = time.time()
 		new_depth_queue_map = []
 		with mp.Pool() as pool :
 			new_depth_queue_map = pool.map(expandDepth, stateQueue)
-		
-		new_depth_queue = []
-		[(new_depth_queue.extend(q)) for q in new_depth_queue_map]
+		# print("map :=", time.time() - start_q)
 
-		stateQueue = updateQueueWithUnique(new_depth_queue, explored_states)
+		# start_red = time.time()
+		stateQueue = updateQueueWithUnique(new_depth_queue_map, explored_states)
+		# print("reduce :=", time.time() - start_red)
 
 	return explored_states
 
@@ -324,7 +326,7 @@ def SolveMondrian(a: int, M: int, show: bool = True) -> None :
 		
 def main() :
 	a_s = [8, 12, 16, 20]
-	M_s = [2, 3, 4, 5, 6, 7, 10, 13, 15, 20, 25]
+	M_s = [2, 3, 4, 5, 6, 7, 10, 15]
 
 	# a_s = [10]
 	# M_s = [2, 3, 4]
