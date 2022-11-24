@@ -1,13 +1,13 @@
 import copy
 import random
 import time
+import multiprocessing as mp
 
 from typing import (Tuple, List)
 from enum import Enum
 
 import cv2
 import numpy as np
-from numba import jit
 
 MONDRIAN_COLORS = [
 	(1,240,255),
@@ -28,6 +28,11 @@ class ActionDirection(Enum):
 
 
 class Rectangle :
+	x: int
+	y: int
+	width: int
+	height: int
+
 	def __init__(self, x: int, y: int, width: int, height: int) :
 		self.x = x
 		self.y = y
@@ -58,6 +63,11 @@ class Rectangle :
 
 
 class Action:
+	incidentRectangles : List[Rectangle]
+	t: ActionType
+	index: int
+	direction: ActionDirection
+
 	def __init__(self, incidentRectangles: List[int], t: ActionType, index: int, direction: ActionDirection) :
 		self.incidentRectangles = incidentRectangles
 		self.t = t
@@ -66,8 +76,8 @@ class Action:
 
 
 def computeStateHash(rectangles: List[Rectangle]) -> int :
-	# Create hash for state to allow for efficient compariosn with othe states
-	return sum([(i * 10**3) * hash(r) for (i, r) in enumerate(rectangles)])
+	# Create hash for state to allow for efficient comparison with othe states
+	return sum([(10**(3 * i)) * hash(r) for (i, r) in enumerate(rectangles)])
 
 
 def flipRectangles(rectangles: List[Rectangle], direction: ActionDirection, a: int) -> List[Rectangle] :
@@ -80,20 +90,16 @@ def flipRectangles(rectangles: List[Rectangle], direction: ActionDirection, a: i
 	return new_rects
 
 
-def rotateRectangles90Clockwise(rectangles: List[Rectangle], a: int) -> List[Rectangle] :
-	new_rects = []
-	# flip rectangles horzontally
-	new_rects = flipRectangles(rectangles, ActionDirection.HORIZONTAL, a)
-
-	# transpose all rectangles
-	for r in new_rects :
-		r.x, r.y = r.y, r.x
-		r.width, r.height = r.height, r.width
-
-	return new_rects
+def transposeRectangles(rectangles: List[Rectangle]) -> List[Rectangle] :
+	return [Rectangle(r.y, r.x, r.height, r.width) for r in rectangles]
 
 
 class State:
+	rectangles : List[Rectangle]
+	depth: int
+	a: int
+	hash: int
+
 	def __init__(self, rectangles: List[Rectangle], depth: int, a: int) :
 		self.rectangles = sorted(rectangles, key=lambda r: r.x * 10000 + r.y)
 		self.depth = depth
@@ -107,8 +113,8 @@ class State:
 			computeStateHash(horizontally_flipped_rects),
 			computeStateHash(flipRectangles(self.rectangles, ActionDirection.VERTICAL, a)),
 			computeStateHash(rotated_180), # 180
-			computeStateHash(rotateRectangles90Clockwise(self.rectangles, a)), # 270
-			computeStateHash(rotateRectangles90Clockwise(rotated_180, a)), # 90
+			computeStateHash(transposeRectangles(horizontally_flipped_rects)), # 270
+			computeStateHash(transposeRectangles(flipRectangles(rotated_180, ActionDirection.HORIZONTAL, a))), # 90
 		])
 
 	def isValid(self) -> bool :
@@ -263,24 +269,36 @@ def showState(a: int, rects: List[Rectangle], name: str = "best") :
 	cv2.imwrite(name + ".png", img)
 
 
-# @jit(parallel=True, forceobj=True)
+def expandDepth(current_state: State) -> List[State] :
+	return [actOnState(current_state, possible_action) for possible_action in current_state.generatePossibleActions()]
+	
+
+def updateQueueWithUnique(new_queue: List[State], explored_states: dict) -> List[State] :
+	unique_queue = []
+	for i in range(len(new_queue)) :
+		curr_state = new_queue[i]
+		
+		not_explored = (not hash(curr_state) in explored_states)
+		explored_states[hash(curr_state)] = curr_state
+		
+		if not_explored :
+			unique_queue.append(curr_state)
+
+	return unique_queue
+
+
 def iterateBFS(M: int, explored_states: dict, stateQueue: List[State]) -> None :
-	while not len(stateQueue) == 0 :
-		current_state = stateQueue.pop(0)
+	for _ in range(M) :
+		new_depth_queue_map = []
+		with mp.Pool() as pool :
+			new_depth_queue_map = pool.map(expandDepth, stateQueue)
+		
+		new_depth_queue = []
+		[(new_depth_queue.extend(q)) for q in new_depth_queue_map]
 
-		if current_state.depth >= M :
-			break
+		stateQueue = updateQueueWithUnique(new_depth_queue, explored_states)
 
-		new_states = []
-		for possible_action in current_state.generatePossibleActions() :
-			acted_on_state = actOnState(current_state, possible_action)
-
-			if not hash(acted_on_state) in explored_states :
-				unexplored = True
-				explored_states[hash(acted_on_state)] = acted_on_state
-				new_states.append(acted_on_state)
-
-		stateQueue += new_states
+	return explored_states
 
 
 def SolveMondrian(a: int, M: int, show: bool = True) -> None :
@@ -299,15 +317,18 @@ def SolveMondrian(a: int, M: int, show: bool = True) -> None :
 	print("Best mondrian score := %d\n" % score)
 
 	if show :
-		showState(a, ranked_explored_states[0].rectangles, "best_%dX%d=%d" % (a, M,score))
+		showState(a, ranked_explored_states[0].rectangles, "best_%dX%d=%d" % (a, M, score))
 
 	return score
 
 		
 def main() :
 	a_s = [8, 12, 16, 20]
-	M_s = [2, 3, 4, 5, 6, 7, 8]
+	M_s = [2, 3, 4, 5, 6, 7, 10, 13, 15, 20, 25]
 
+	# a_s = [10]
+	# M_s = [2, 3, 4]
+	
 	time_table = [[('', ''), *zip(a_s, a_s)]]
 
 	for M in M_s :
