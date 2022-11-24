@@ -8,6 +8,7 @@ from enum import Enum
 
 import cv2
 import numpy as np
+from sortedcontainers import SortedList
 
 MONDRIAN_COLORS = [
 	(1,240,255),
@@ -273,34 +274,52 @@ def expandDepth(current_state: State) -> List[State] :
 	return [actOnState(current_state, possible_action) for possible_action in current_state.generatePossibleActions()]
 	
 
-def updateQueueWithUnique(new_queue: List[List[State]], explored_states: dict) -> List[State] :
+def updateQueueWithUnique(new_queue: List[List[State]], explored_states: SortedList, scores_states: dict) -> List[State] :
 	unique_queue = []
 	for i in range(len(new_queue)) :
 		for j in range(len(new_queue[i])) :
 			curr_state = new_queue[i][j]
 			
-			not_explored = (not hash(curr_state) in explored_states)
-			explored_states[hash(curr_state)] = curr_state
+			not_explored = (explored_states.count(hash(child_state)) == 0)
 			
 			if not_explored :
+				explored_states.add(hash(curr_state))
+				scores_states[calculateMondrian(curr_state)] = curr_state
 				unique_queue.append(curr_state)
 
 	return unique_queue
 
 
-def iterateBFS(M: int, explored_states: dict, stateQueue: List[State]) -> None :
+def iterateBFS(M: int, scores_states: dict, stateQueue: List[State]) -> None :
+	explored_states = SortedList()
 	for _ in range(M) :
-		# start_q = time.time()
 		new_depth_queue_map = []
 		with mp.Pool() as pool :
 			new_depth_queue_map = pool.map(expandDepth, stateQueue)
-		# print("map :=", time.time() - start_q)
 
-		# start_red = time.time()
-		stateQueue = updateQueueWithUnique(new_depth_queue_map, explored_states)
-		# print("reduce :=", time.time() - start_red)
+		stateQueue = updateQueueWithUnique(new_depth_queue_map, explored_states, scores_states)
 
 	return explored_states
+
+
+def iterateIDDFS(M : int, scores_states: dict, stateList : List[State]) -> None :
+	explored_states = SortedList()
+	while len(stateList) > 0 :
+		# Instead, treat stateList as a stack, meaning that the deepest depth will be explored before a parallel branch is
+		current_state = stateList.pop()
+
+		child_states = [actOnState(current_state, possible_action) for possible_action in current_state.generatePossibleActions()]
+
+		for i in range(len(child_states)) :
+			child_state = child_states[i]
+			
+			not_explored = (explored_states.count(hash(child_state)) == 0)
+
+			if not_explored :
+				explored_states.add(hash(child_state))
+				scores_states[calculateMondrian(child_state)] = child_state
+				if child_state.depth != M:
+					stateList.append(child_state)
 
 
 def SolveMondrian(a: int, M: int, show: bool = True) -> None :
@@ -308,25 +327,30 @@ def SolveMondrian(a: int, M: int, show: bool = True) -> None :
 
 	initial_state = State([Rectangle(0, 0, a, a)], 0, a)
 	stateQueue = [initial_state]
-	explored_states = {}
+	scores_states = {}
 	
-	iterateBFS(M, explored_states, stateQueue)
+	# Disabling BFS as although it is faster, it is more memory hungry
+	# to the extent of using all available RAM
+	
+	# iterateBFS(M, scores_states, stateQueue)
+	iterateIDDFS(M, scores_states, stateQueue)
 
-	ranked_explored_states = sorted(list(explored_states.values()), key=lambda s : calculateMondrian(s))
+	ranked_scores = sorted(list(scores_states.keys()))
 
-	score = calculateMondrian(ranked_explored_states[0])
+	score = ranked_scores[0]
 
 	print("Best mondrian score := %d\n" % score)
 
 	if show :
-		showState(a, ranked_explored_states[0].rectangles, "best_%dX%d=%d" % (a, M, score))
+		best_state = scores_states[score]
+		showState(a, best_state.rectangles, "best_%dX%d=%d" % (a, M, score))
 
 	return score
 
 		
 def main() :
 	a_s = [8, 12, 16, 20]
-	M_s = [2, 3, 4, 5, 6, 7, 10, 15]
+	M_s = range(2, 20)
 
 	# a_s = [10]
 	# M_s = [2, 3, 4]
