@@ -350,10 +350,10 @@ def SolveMondrian(a: int, M: int, show: bool = True) -> None :
 		
 def main() :
 	a_s = [8, 12, 16, 20]
-	M_s = range(2, 20)
+	M_s = range(2, 6)
 
 	# a_s = [10]
-	# M_s = [2, 3, 4]
+	# M_s = [2, 3, 4, 5]
 	
 	time_table = [[('', ''), *zip(a_s, a_s)]]
 
